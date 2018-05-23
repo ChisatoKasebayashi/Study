@@ -1,21 +1,27 @@
 #! /usr/bin/env python
-
 import pygame
 from pygame.locals import*
-
+import sys
 from pyenv import Robot, FallError
+import datetime
+def getBallAxis(robot):
+    ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
+    if not ball:
+        return 0
+    else:
+        return 1
 
-#SCREEN_WIDTH = 640
-#SCREEN_HEIGHT = 480
+def getDateTime():
+    d = datetime.datetime.today()
+    date = '{}{}{}{}{}'.format(d.year, '%02d' % d.month, '%02d' % d.day, '%02d' % d.hour, '%02d' % d.minute)
+    return date
 
-pygame.joystick.init()
-try:
-	j = pygame.joystick.Joystick(0)
-	j.init()
-	print 'Joystick name is' + j.get_name()
-	print 'Button number is' + str(j.get_numbuttons())
-except pygame.error:
-	print 'not found Joystick'
+def walking(x,y):
+    X = y
+    Y = x
+    period = 8
+    robot.Walk(0,0,round(-(26*X)), period, round(-(13*Y)))
+    #print 'walk(0,0,'+str(round(-(26*y)))+','+str(period)+','+str(round(13*x))
 
 def main():
 	pygame.init()
@@ -23,32 +29,40 @@ def main():
 	#pygame.display.set_caption('Joystick')
 	#pygame.display.flip()
         period = 8
-        robot = Robot()
+        
+        while 1:
+            for e in pygame.event.get():
+                if e.type == pygame.locals.JOYAXISMOTION:
+                    x, y = j.get_axis(0), j.get_axis(1)
+                    if (x == 0 and y== 0):
+                        robot.Cancel()
+                    else:
+                        walking(x,y)
+                        #print '(x, y) = (' + str(float(x)) +', ' + str(float(y))+')'
+                        if getBallAxis(robot) == 0:
+                            log = str(-1) + ',' + str(-1) + ',' + str(x) + ',' + str(y)+'\n'
+                            f.write(log)
+                        else :
+                            ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
+                            b_x, b_y, b_theta = ball[0]
+                            log = str(b_x) + ',' + str(b_y) + ',' + str(x) + ',' + str(y) + '\n'
+                            f.write(log)
 
-	while 1:
-		for e in pygame.event.get():
-			if e.type == QUIT:
-				return
-			if (e.type == KEYDOWN and e.key == K_ESCAPE):
-				return
-			if e.type == pygame.locals.JOYAXISMOTION:
-				x, y = j.get_axis(0), j.get_axis(1)
-				print '(x, y) = (' + str(float(x)) +', ' + str(float(y))+')'
-                                if (x == 0 and y== 0):
-                                    print 'cancel'
-                                    robot.Cancel()
-                                else:
-                                    robot.Walk(0,0,round(-(26*y)), period, round(13*x))
-                                    print 'walk(0,0,'+str(round(-(26*y)))+','+str(period)+','+str(round(13*x))
-			elif e.type == pygame.locals.JOYBALLMOTION:
-				print 'ball motion'
-			elif e.type == pygame.locals.JOYHATMOTION:
-				print 'hat motion'
-			elif e.type == pygame.locals.JOYBUTTONDOWN:
-				print str(e.button) + 'th button pushed'
-                                #robot.Walk(0,0,0, period, 0)
-			elif e.type == pygame.locals.JOYBUTTONUP:
-				print str(e.button) + 'th button uped'
+                elif e.type == 11:
+                    return -1
 
-if __name__ == '__main__':main()
-
+if __name__ == '__main__':
+    pygame.joystick.init()
+    f = open('log' + getDateTime() + '.csv', 'w')
+    if pygame.joystick.get_count():
+            j = pygame.joystick.Joystick(0)
+            j.init()
+            print 'Joystick name is' + j.get_name()
+            print 'Button number is' + str(j.get_numbuttons())
+    else:
+            print 'not found Joystick'
+            sys.exit()
+    robot = Robot()
+    main()
+    robot.terminate()
+    
