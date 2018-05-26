@@ -34,6 +34,7 @@ def main():
             for e in pygame.event.get():
                 if e.type == pygame.locals.JOYAXISMOTION:
                     x, y = j.get_axis(0), j.get_axis(1)
+                    print str(x)+ ','+str(y)
                     if (x == 0 and y== 0):
                         robot.Cancel()
                     else:
@@ -47,10 +48,21 @@ def main():
                             b_x, b_y, b_theta = ball[0]
                             log = str(b_x) + ',' + str(b_y) + ',' + str(x) + ',' + str(y) + '\n'
                             f.write(log)
-
-                elif e.type == 11:
-                    return -1
-
+                elif e.type == pygame.locals.JOYBUTTONDOWN:
+                    print str(e.button)+'th button'
+                    if e.button == 0: # turn right
+                        robot.Walk(0,-10,0, period, 0)
+                    elif e.button == 3: #turnleft
+                        robot.Walk(0,10,0, period, 0)
+                    elif e.button >  5:
+                        print '!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!'
+                        log = 'fallerror\n'
+                        f.write(log)
+                    elif e.button == 1: # end
+                        f.close()
+                        return -1
+                elif e.type == pygame.locals.JOYBUTTONUP:
+                    robot.Cancel()
 if __name__ == '__main__':
     pygame.joystick.init()
     f = open('log' + getDateTime() + '.csv', 'w')
