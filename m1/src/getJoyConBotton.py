@@ -2,10 +2,13 @@
 import pygame
 from pygame.locals import*
 import sys
-from pyenv import Robot, FallError
 import datetime
+import rcl
+import kid.strategy
+import time
 def getBallAxis(robot):
-    ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
+    #ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
+    ball = agent.brain.get_sim_selfpos()
     if not ball:
         return 0
     else:
@@ -20,7 +23,7 @@ def walking(x,y,th):
     X = y
     Y = x
     period = 8
-    robot.Walk(0,round(th*15),round(-(26*X)), period, round(-(13*Y)))
+    agent.effector.walk(0,round(-(16*th)),round(-(16*X)), period, round(-(16*Y)))
     #print 'walk(0,0,'+str(round(-(26*y)))+','+str(period)+','+str(round(13*x))
 
 def main():
@@ -37,27 +40,46 @@ def main():
         
         while 1:
             for e in pygame.event.get():
+                #agent.wait_until_status_updated()
                 if e.type == pygame.locals.JOYAXISMOTION:
-                    x, y = j.get_axis(0), j.get_axis(1)
+                    jx, jy = j.get_axis(0), j.get_axis(1)
                     #print('******LEFT*******')
                     #print(str(x)+ ','+str(y))
-                    th, ty = j.get_axis(2), j.get_axis(3)
+                    jth, jty = j.get_axis(2), j.get_axis(3)
                     #print('********RIGHT*********')
                     #print(str(th)+ ','+str(y))
                     
-                    if ((x == 0 and y== 0)and th == 0):
-                        robot.Cancel()
+                    if ((jx == 0 and jy== 0)and jth == 0):
+                        #robot.Cancel()
+                        agent.effector.cancel()
+
                     else:
-                        walking(x,y,th)
+                        walking(jx,jy,jth)
                         #print('theta = ' + str(th))
+                        #print('selfpos')
+                        #print(agent.brain.get_sim_selfpos()[0])
+                        #print('ballpos')
+                        #print(agent.brain.get_sim_ballpos()[0])
                         #print '(x, y) = (' + str(float(x)) +', ' + str(float(y))+')'
                         if getBallAxis(robot) == 0:
-                            log = str(-1) + ',' + str(-1) + ',' + str(x) + ',' + str(y)+ ',' + str(th) + ',' + str(ty)+'\n'
+                            b_x = -1
+                            b_y = -1
+                            selfpos = agent.brain.get_sim_selfpos()
+                            pos_x  = selfpos[0]
+                            pos_y  = selfpos[1]
+                            pos_th = selfpos[2]
+                            log = str(b_x) + ',' + str(b_y) + ',' + str(pos_x) + ',' + str(pos_y) + ',' + str(pos_th) + ',' + str(jx) + ',' + str(jy) + ',' + str(jth) + ',' + str(jty) +'\n'
                             f.write(log)
                         else :
-                            ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
-                            b_x, b_y, b_theta = ball[0]
-                            log = str(b_x) + ',' + str(b_y) + ',' + str(x) + ',' + str(y) + ',' + str(th) + ',' + str(ty) +'\n'
+                            #ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
+                            ball = agent.brain.get_sim_ballpos()
+                            b_x = ball[0]
+                            b_y = ball[1]
+                            selfpos = agent.brain.get_sim_selfpos()
+                            pos_x  = selfpos[0]
+                            pos_y  = selfpos[1]
+                            pos_th = selfpos[2]
+                            log = str(b_x) + ',' + str(b_y) + ',' + str(pos_x) + ',' + str(pos_y) + ',' + str(pos_th) + ',' + str(jx) + ',' + str(jy) + ',' + str(jth) + ',' + str(jty) +'\n'
                             f.write(log)
                 elif e.type == pygame.locals.JOYBUTTONDOWN:
                     print str(e.button)+'th button'
@@ -70,8 +92,10 @@ def main():
                         log = 'fallerror\n'
                         f.write(log)
                 elif e.type == pygame.locals.JOYBUTTONUP:
-                    robot.Cancel()
+                    agent.effector.cancel()
+                    #robot.Cancel()
 if __name__ == '__main__':
+    strategy = kid.strategy.HLKidStrategy()
     pygame.joystick.init()
     f = open('log' + getDateTime() + '.csv', 'w')
     if pygame.joystick.get_count():
@@ -80,7 +104,27 @@ if __name__ == '__main__':
     else:
             print 'not found Joystick'
             sys.exit()
-    robot = Robot()
-    main()
-    robot.terminate()
+    agent = rcl.SoccerAgent(lambda: strategy.create_field_properties())
+    time.sleep(1)
+
+    agent.brain.debug_log_ln("cgi.py start")
+
+    agent.brain.set_selfpos((0, 0, 0))
+
+    agent.effector.set_pan_deg(0)
+
+    agent.brain.set_auto_localization_mode(0)
+    agent.brain.set_use_white_lines(1)
+    agent.brain.enable_auto_wakeup(0)
+    agent.brain.set_use_yolo(1)
+    robot = agent.brain
+    try:
+        main()
+    except Exception, e:
+        agent.brain.debug_log_ln("Exception: " + str(e))
+        agent.terminate()
+        raise
+    except (KeyboardInterrupt, SystemExit):
+        agent.terminate()
+        raise
     
