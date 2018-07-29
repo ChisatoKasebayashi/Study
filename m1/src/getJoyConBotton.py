@@ -6,8 +6,10 @@ import datetime
 import rcl
 import kid.strategy
 import time
+import tools.geometry
+
+g_goal0 = [[4.8, 1.3,0], [4.8, -1.3,0]]
 def getBallAxis(robot):
-    #ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
     ball = agent.brain.get_sim_selfpos()
     if not ball:
         return 0
@@ -24,7 +26,6 @@ def walking(x,y,th):
     Y = x
     period = 8
     agent.effector.walk(0,round(-(16*th)),round(-(16*X)), period, round(-(16*Y)))
-    #print 'walk(0,0,'+str(round(-(26*y)))+','+str(period)+','+str(round(13*x))
 
 def main():
 	pygame.init()
@@ -40,46 +41,38 @@ def main():
         
         while 1:
             for e in pygame.event.get():
-                #agent.wait_until_status_updated()
                 if e.type == pygame.locals.JOYAXISMOTION:
                     jx, jy = j.get_axis(0), j.get_axis(1)
-                    #print('******LEFT*******')
-                    #print(str(x)+ ','+str(y))
                     jth, jty = j.get_axis(2), j.get_axis(3)
-                    #print('********RIGHT*********')
-                    #print(str(th)+ ','+str(y))
                     
+
+                    g_ball = agent.brain.get_sim_ballpos()
+                    g_bx = g_ball[0]
+                    g_by = g_ball[1]
+                    
+                    g_selfpos = agent.brain.get_sim_selfpos()
+                    g_px  = g_selfpos[0]
+                    g_py  = g_selfpos[1]
+                    g_pth = g_selfpos[2]
+
+                    g_p0x = g_goal0[0][0]
+                    g_p0y = g_goal0[0][1]
+                    g_p1x = g_goal0[1][0]
+                    g_p1y = g_goal0[1][1]
+                    l_ball = tools.geometry.coord_trans_global_to_local(g_selfpos,g_ball)
+                    l_pole0 = tools.geometry.coord_trans_global_to_local(g_selfpos,g_goal0[0])
+                    l_pole1 = tools.geometry.coord_trans_global_to_local(g_selfpos,g_goal0[1])
+
                     if ((jx == 0 and jy== 0)and jth == 0):
-                        #robot.Cancel()
                         agent.effector.cancel()
 
                     else:
                         walking(jx,jy,jth)
-                        #print('theta = ' + str(th))
-                        #print('selfpos')
-                        #print(agent.brain.get_sim_selfpos()[0])
-                        #print('ballpos')
-                        #print(agent.brain.get_sim_ballpos()[0])
-                        #print '(x, y) = (' + str(float(x)) +', ' + str(float(y))+')'
                         if getBallAxis(robot) == 0:
-                            b_x = -1
-                            b_y = -1
-                            selfpos = agent.brain.get_sim_selfpos()
-                            pos_x  = selfpos[0]
-                            pos_y  = selfpos[1]
-                            pos_th = selfpos[2]
-                            log = str(b_x) + ',' + str(b_y) + ',' + str(pos_x) + ',' + str(pos_y) + ',' + str(pos_th) + ',' + str(jx) + ',' + str(jy) + ',' + str(jth) + ',' + str(jty) +'\n'
+                            log = str(-1)+','+ str(-1)+','+str(l_pole0[0])+','+str(l_pole0[1])+ ','+ str(l_pole1[0])+ ','+str(l_pole1[1]) + ',' +str(g_bx) +','+str(g_by)+','+str(g_p0x) +',' +str(g_p0y)+','+str(g_p1x)+','+str(g_p1y) +',' +  str(g_px) + ',' + str(g_py) + ',' + str(g_pth) + ',' + str(jx) + ',' + str(jy) + ',' + str(jth) + ',' + str(jty) +'\n'
                             f.write(log)
                         else :
-                            #ball = robot.GetLocalPos(robot.HLOBJECT_BALL, robot.HLCOLOR_BALL)
-                            ball = agent.brain.get_sim_ballpos()
-                            b_x = ball[0]
-                            b_y = ball[1]
-                            selfpos = agent.brain.get_sim_selfpos()
-                            pos_x  = selfpos[0]
-                            pos_y  = selfpos[1]
-                            pos_th = selfpos[2]
-                            log = str(b_x) + ',' + str(b_y) + ',' + str(pos_x) + ',' + str(pos_y) + ',' + str(pos_th) + ',' + str(jx) + ',' + str(jy) + ',' + str(jth) + ',' + str(jty) +'\n'
+                            log = str(l_ball[0])+','+ str(l_ball[1])+','+str(l_pole0[0])+','+str(l_pole0[1])+ ','+ str(l_pole1[0])+ ','+str(l_pole1[1]) + ',' +str(g_bx) +','+str(g_by)+','+str(g_p0x) +',' +str(g_p0y)+','+str(g_p1x)+','+str(g_p1y) +',' +  str(g_px) + ',' + str(g_py) + ',' + str(g_pth) + ',' + str(jx) + ',' + str(jy) + ',' + str(jth) + ',' + str(jty) +'\n'
                             f.write(log)
                 elif e.type == pygame.locals.JOYBUTTONDOWN:
                     print str(e.button)+'th button'
