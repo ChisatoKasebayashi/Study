@@ -12,7 +12,7 @@ img = Image.open('hlfield.png')
 nimg = np.array(img)
 #target_path = '../data/LOG_G/log201807211402.csv'
 #target_path = './log201807241933.csv'
-target_path = './log201807291807.csv'
+target_path = sys.argv[1]
 data = pd.DataFrame()
 data = pd.read_csv(target_path,header=None)
 #print(data)
@@ -23,7 +23,7 @@ l_pole1 = np.array(data.iloc[:,4:6])
 g_ball = np.array(data.iloc[:,6:8])
 g_pole0 = np.array(data.iloc[:,8:10])
 g_pole1 = np.array(data.iloc[:,10:12])
-g_robot = np.array(data.iloc[:,12:14])
+g_robot = np.array(data.iloc[:,12:15])
 print(l_ball)
 
 fig, ax = plt.subplots()
@@ -67,7 +67,12 @@ def update(i):
     
     ax.scatter(bx, by,s=80,c='orange')
 #    ax.scatter(lbx, lby,s=100, c='m')
-    ax.scatter(rx, ry,s=120,c='black')
+    ax.scatter(rx, ry,s=120,facecolors='none',edgecolors='black')
+    l = 25
+    th = g_robot[step][2]
+    lx = [rx, rx + l*np.cos(th)]
+    ly = [ry, ry + l*np.sin(th)]
+    ax.plot(lx,ly,'-', c='black')
     ax.scatter(p0x, p0y, s=200,c='gold')
     ax.scatter(p1x, p1y, s=200,c='gold')
 #    print('x:'+str(ball[i][0])+'y:'+str(ball[i][1])+'\n')
