@@ -12,7 +12,7 @@ img = Image.open('hlfield.png')
 nimg = np.array(img)
 #target_path = '../data/LOG_G/log201807211402.csv'
 #target_path = './log201807241933.csv'
-target_path = sys.argv[1]
+target_path = sys.argv[1] #mitai data no path
 data = pd.DataFrame()
 data = pd.read_csv(target_path,header=None)
 #print(data)
