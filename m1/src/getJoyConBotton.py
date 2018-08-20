@@ -10,7 +10,7 @@ import tools.geometry
 
 g_goal0 = [[4.8, 1.3,0], [4.8, -1.3,0]]
 def getBallAxis(robot):
-    ball = agent.brain.get_sim_selfpos()
+    ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
     if not ball:
         return 0
     else:
@@ -70,11 +70,17 @@ def main():
                     else:
                         walking(ljx,ljy,rjx)
                         if getBallAxis(robot) == 0:
-                            log = str(-1)+','+ str(-1)+','+str(l_pole0[0])+','+str(l_pole0[1])+ ','+ str(l_pole1[0])+ ','+str(l_pole1[1]) + ',' +str(g_bx) +','+str(g_by)+','+str(g_p0x) +',' +str(g_p0y)+','+str(g_p1x)+','+str(g_p1y) +',' +  str(g_px) + ',' + str(g_py) + ',' + str(g_pth) + ',' + str(ljx) + ',' + str(ljy) + ',' + str(rjx) + ',' + str(rjy) +'\n'
+                            log =str(-9999)+','+str(-9999)+ "," +str(l_ball[0])+','+ str(l_ball[1])+','+str(l_pole0[0])+','+str(l_pole0[1])+ ','+ str(l_pole1[0])+ ','+str(l_pole1[1]) + ',' +str(g_bx) +','+str(g_by)+','+str(g_p0x) +',' +str(g_p0y)+','+str(g_p1x)+','+str(g_p1y) +',' +  str(g_px) + ',' + str(g_py) + ',' + str(g_pth) + ',' + str(ljx) + ',' + str(ljy) + ',' + str(rjx) + ',' + str(rjy) +'\n'
                             f.write(log)
                             
                         else :
-                            log = str(l_ball[0])+','+ str(l_ball[1])+','+str(l_pole0[0])+','+str(l_pole0[1])+ ','+ str(l_pole1[0])+ ','+str(l_pole1[1]) + ',' +str(g_bx) +','+str(g_by)+','+str(g_p0x) +',' +str(g_p0y)+','+str(g_p1x)+','+str(g_p1y) +',' +  str(g_px) + ',' + str(g_py) + ',' + str(g_pth) + ',' + str(ljx) + ',' + str(ljy) + ',' + str(rjx) + ',' + str(rjy) +'\n'
+                            d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
+                            d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
+                            print(type(d_goal))
+                            print(d_goal[0])
+                            #print(str(d_goal[0])+","+str(d_goal[1]))
+                            d_bx, d_by, _ = d_ball[0]                
+                            log = str(d_bx)+','+str(d_by)+"," +str(l_ball[0])+','+ str(l_ball[1])+','+str(l_pole0[0])+','+str(l_pole0[1])+ ','+ str(l_pole1[0])+ ','+str(l_pole1[1]) + ',' +str(g_bx) +','+str(g_by)+','+str(g_p0x) +',' +str(g_p0y)+','+str(g_p1x)+','+str(g_p1y) +',' +  str(g_px) + ',' + str(g_py) + ',' + str(g_pth) + ',' + str(ljx) + ',' + str(ljy) + ',' + str(rjx) + ',' + str(rjy) +'\n'
                             f.write(log)
 
                 elif e.type == pygame.locals.JOYBUTTONDOWN:
@@ -112,7 +118,7 @@ if __name__ == '__main__':
     agent.brain.set_auto_localization_mode(0)
     agent.brain.set_use_white_lines(1)
     agent.brain.enable_auto_wakeup(0)
-    agent.brain.set_use_yolo(1)
+    #agent.brain.set_use_yolo(1)
     robot = agent.brain
     try:
         main()
