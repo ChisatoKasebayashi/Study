@@ -62,12 +62,8 @@ def getObjectAxis(robot):
     d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
     d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
     if (d_ball and d_goal):
-        print(d_ball[0])
-        print(d_goal[0])
-        print('aru')
         return 1
     else:
-        print('dotikanai')
         return 0
 
 def getDateTime():
@@ -85,7 +81,6 @@ def walking(x,y,th):
 def main():
 
         while 1:
-            print('start')
             g_ball = agent.brain.get_sim_ballpos()
             g_bx = g_ball[0]
             g_by = g_ball[1]
@@ -115,6 +110,7 @@ def main():
                     p0x, p0y, _ = l_pole0
                     p1x, p1y, _ = l_pole1
                     input_d_sim =np.array([[bx,by,(p0x+p1x)/2.0,(p0y+p1y)/2.0]])
+                    print(input_d_sim)
                     pred = p_sess.run(final_output, feed_dict={INPUT: input_d_sim})
                     x = pred[0][0]
                     y = pred[0][1]
@@ -131,10 +127,10 @@ def main():
                 if getObjectAxis(agent):
                     d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
                     d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
-                    print('prin_detect')
                     dbx, dby, _ = d_ball[0]
                     dgx, dgy,_ = d_goal[0]
-                    input_d_detect =np.array([[dbx,dby,dgx,dgy]])
+                    input_d_detect =np.array([[dbx,dby,dgx,dgy]])/1000
+                    print(input_d_detect)
                     pred = p_sess.run(final_output, feed_dict={INPUT: input_d_detect})
                     x = pred[0][0]
                     y = pred[0][1]
