@@ -72,6 +72,7 @@ def walking(x,y,th):
 def main():
 
         while 1:
+            print('start')
             g_ball = agent.brain.get_sim_ballpos()
             g_bx = g_ball[0]
             g_by = g_ball[1]
@@ -98,7 +99,9 @@ def main():
             d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
             d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
             #ball_buf = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
-            if (d_ball and d_goal) :
+            print('if no mae')
+            if (l_ball and (l_pole0 and l_pole1)) :
+                print('prin')
                 #dbx, dby = d_ball[0]
                 #dgx, dgy = d_goal[0]
                 bx, by, _ = l_ball
@@ -115,12 +118,10 @@ def main():
                     agent.brain.wait_until_motion_finished()
                 else:
                     walking(x,y,th)
+                print('prin end')
             else:
-                print('koko3')
-                agent.brain.sleep(2)
-                agent.brain.wait_until_motion_finished()
-
-
+                print('Ball not find')
+            time.sleep(1)
 if __name__ == '__main__':
     strategy = kid.strategy.HLKidStrategy()
     agent = rcl.SoccerAgent(lambda: strategy.create_field_properties())
