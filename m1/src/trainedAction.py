@@ -8,6 +8,8 @@ import rcl
 import time
 import tools.geometry
 
+args = sys.argv
+
 g_goal0 = [[4.8,1.3,0],[4.8,-1.3,0]]
 
 config = tf.ConfigProto(
@@ -56,6 +58,17 @@ def getBallAxis(robot):
         return 0
     else:
         return 1
+def getObjectAxis(robot):
+    d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
+    d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
+    if (d_ball and d_goal):
+        print(d_ball[0])
+        print(d_goal[0])
+        print('aru')
+        return 1
+    else:
+        print('dotikanai')
+        return 0
 
 def getDateTime():
     d = datetime.datetime.today()
@@ -95,32 +108,45 @@ def main():
             agent.brain.start_memorize_observation()
             agent.brain.memorize_visible_observation()
             agent.brain.use_memorized_observation_ntimes(10, 500, 10, 95)
-            #agent.brain.sleep(5.0)
-            d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
-            d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
-            #ball_buf = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
-            print('if no mae')
-            if (l_ball and (l_pole0 and l_pole1)) :
-                print('prin')
-                #dbx, dby = d_ball[0]
-                #dgx, dgy = d_goal[0]
-                bx, by, _ = l_ball
-                p0x, p0y, _ = l_pole0
-                p1x, p1y, _ = l_pole1
-                input_d =np.array([[bx,by,(p0x+p1x)/2.0,(p0y+p1y)/2.0]])
-                #print(input_d)
-                pred = p_sess.run(final_output, feed_dict={INPUT: input_d})
-                x = pred[0][0]
-                y = pred[0][1]
-                th = pred[0][2]
-                print('pred(x,y,th)='+str(x)+','+str(y)+','+str(th))
-                if (x == 0 and y== 0):
-                    agent.brain.wait_until_motion_finished()
+            if (args[2] == 'sim'):
+                if (l_ball and (l_pole0 and l_pole1)) :
+                    print('prin_sim')
+                    bx, by, _ = l_ball
+                    p0x, p0y, _ = l_pole0
+                    p1x, p1y, _ = l_pole1
+                    input_d_sim =np.array([[bx,by,(p0x+p1x)/2.0,(p0y+p1y)/2.0]])
+                    pred = p_sess.run(final_output, feed_dict={INPUT: input_d_sim})
+                    x = pred[0][0]
+                    y = pred[0][1]
+                    th = pred[0][2]
+                    print('pred_sim(x,y,th)='+str(x)+','+str(y)+','+str(th))
+                    if (x == 0 and y== 0):
+                        agent.brain.wait_until_motion_finished()
+                    else:
+                        walking(x,y,th)
+                    print('prin end')
                 else:
-                    walking(x,y,th)
-                print('prin end')
-            else:
-                print('Ball not find')
+                    print('Ball not find')
+            elif (args[2] == 'detect'):
+                if getObjectAxis(agent):
+                    d_ball = agent.brain.get_estimated_object_pos_lc(agent.brain.BALL, agent.brain.AF_ANY)
+                    d_goal = agent.brain.get_estimated_object_pos_lc(agent.brain.GOAL_POLE, agent.brain.AF_ANY)
+                    print('prin_detect')
+                    dbx, dby, _ = d_ball[0]
+                    dgx, dgy,_ = d_goal[0]
+                    input_d_detect =np.array([[dbx,dby,dgx,dgy]])
+                    pred = p_sess.run(final_output, feed_dict={INPUT: input_d_detect})
+                    x = pred[0][0]
+                    y = pred[0][1]
+                    th = pred[0][2]
+                    print('pred_detect(x,y,th)='+str(x)+','+str(y)+','+str(th))
+                    if (x == 0 and y== 0):
+                        agent.brain.wait_until_motion_finished()
+                    else:
+                        walking(x,y,th)
+                    print('prin end')
+                else:
+                    print('Ball not find')
             time.sleep(1)
 if __name__ == '__main__':
     strategy = kid.strategy.HLKidStrategy()
