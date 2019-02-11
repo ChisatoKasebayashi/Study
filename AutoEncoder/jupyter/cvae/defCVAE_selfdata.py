@@ -20,23 +20,28 @@ class CVAE(chainer.Chain):
         super(CVAE, self).__init__()
         with self.init_scope():
             #encoder
-            self.embed_e = L.EmbedID(n_label, n_h, ignore_label=-1)
+            self.merge_layer_e_x = L.Linear(n_in, n_h)
+            self.merge_layer_e_y = L.Linear(n_label, n_h)
             self.le1 = L.Linear(n_in, n_h)
-            self.le2_mu = L.Linear(n_h+2, n_latent)
-            self.le2_ln_var = L.Linear(n_h+2, n_latent)
+            self.le2_mu = L.Linear(n_h*2, n_latent)
+            self.le2_ln_var = L.Linear(n_h*2, n_latent)
             #dencoder
-            self.embed_d = L.EmbedID(n_label, n_h, ignore_label=-1)
+            self.merge_layer_d_x = L.Linear(n_in, n_h)
+            self.merge_layer_d_y = L.Linear(n_label, n_h)
             self.ld1 = L.Linear(n_latent, n_h)
-            self.ld2 = L.Linear(n_h+2, n_in)
+            self.ld2 = L.Linear(n_h*2, n_in)
             
     def __call__(self, x, y, sigmoid=True):
         return self.decode(self.encode(x, y)[0], y, sigmoid)
     
     def encode(self, x, y):
         h1 = F.tanh(self.le1(x))
+        #print(h1.shape)
+        #print(self.merge_layer_e_y(y).shape)
         #h2 = F.tanh(self.embed_e(y))
-        mu = self.le2_mu(F.concat([h1, y]))
-        ln_var = self.le2_ln_var(F.concat([h1, y]))  # log(sigma**2)
+        #print(F.concat([h1, self.merge_layer_e_y(y)]).shape)
+        mu = self.le2_mu(F.concat([h1, self.merge_layer_e_y(y)]))
+        ln_var = self.le2_ln_var(F.concat([h1, self.merge_layer_e_y(y)]))  # log(sigma**2)
         return mu, ln_var
     
     def decode(self, z, y, sigmoid=True):
@@ -45,7 +50,7 @@ class CVAE(chainer.Chain):
         #print(h1.shape)
         #print('--------')
         #print(y.shape)
-        h3 = self.ld2(F.concat([h1, y]))
+        h3 = self.ld2(F.concat([h1, self.merge_layer_d_y(y)]))
         if sigmoid:
             return F.sigmoid(h3)
         else:
