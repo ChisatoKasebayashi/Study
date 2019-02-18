@@ -38,19 +38,19 @@ class CVAE(chainer.Chain):
         h1 = F.tanh(self.le1(x))
         #print(h1.shape)
         #print(self.merge_layer_e_y(y).shape)
-        #h2 = F.tanh(self.embed_e(y))
+        h2 = F.tanh(self.merge_layer_e_y(y))
         #print(F.concat([h1, self.merge_layer_e_y(y)]).shape)
-        mu = self.le2_mu(F.concat([h1, self.merge_layer_e_y(y)]))
-        ln_var = self.le2_ln_var(F.concat([h1, self.merge_layer_e_y(y)]))  # log(sigma**2)
+        mu = self.le2_mu(F.concat([h1, h2]))
+        ln_var = self.le2_ln_var(F.concat([h1, h2]))  # log(sigma**2)
         return mu, ln_var
     
     def decode(self, z, y, sigmoid=True):
         h1 = F.tanh(self.ld1(z))
-        #h2 = F.tanh(self.embed_d(y))
+        h2 = F.tanh(self.merge_layer_d_y(y))
         #print(h1.shape)
         #print('--------')
         #print(y.shape)
-        h3 = self.ld2(F.concat([h1, self.merge_layer_d_y(y)]))
+        h3 = self.ld2(F.concat([h1,h2 ]))
         if sigmoid:
             return F.sigmoid(h3)
         else:
