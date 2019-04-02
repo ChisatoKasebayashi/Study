@@ -20,13 +20,11 @@ class CVAE(chainer.Chain):
         super(CVAE, self).__init__()
         with self.init_scope():
             #encoder
-            self.merge_layer_e_x = L.Linear(n_in, n_h)
             self.merge_layer_e_y = L.Linear(n_label, n_h)
             self.le1 = L.Linear(n_in, n_h)
             self.le2_mu = L.Linear(n_h*2, n_latent)
             self.le2_ln_var = L.Linear(n_h*2, n_latent)
             #dencoder
-            self.merge_layer_d_x = L.Linear(n_in, n_h)
             self.merge_layer_d_y = L.Linear(n_label, n_h)
             self.ld1 = L.Linear(n_latent, n_h)
             self.ld2 = L.Linear(n_h*2, n_in)
