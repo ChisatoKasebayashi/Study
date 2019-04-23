@@ -17,21 +17,7 @@ center_point_list = np.delete(center_point_list,0,0)
 
 class MakeRandomSelfdata:
     def __init__(self, img):
-        self.img = Image.open(img).convert("L")
-    def get_random_dataset_with_hot_vector(self, n):
-        ndim = 100
-        images = np.zeros((n, 28*28), dtype=np.float32)
-        labels = np.zeros((n, ndim), dtype=np.float32)
-        for i in range(n):
-            pos = np.random.rand()
-            lvec = np.eye(ndim, dtype=np.float32)[int(pos * ndim)]
-            #print('***%f***\n'%pos)
-            #print(lvec)
-            labels[i, :] = lvec
-            im = self.get_random_img_from_pos(pos)
-            images[i, :] = np.reshape(im, 28*28)
-        return chainer.datasets.TupleDataset(images, labels)
-    
+        self.img = Image.open(img).convert("L")  
     def random_crop_in_area(self, left, upper, right, lower, label):
         image_list = np.empty(28*28,dtype=np.float32)
         randx = np.random.randint(left, right)
@@ -75,6 +61,29 @@ class MakeRandomSelfdata:
         else:
             crop_area = (int(p[label][0]-m), int(p[label][1]-m), int(p[label][0]), int(p[label][1]))
         return crop_area
+    def get_random_img_from_pos(self, pos):
+        '''
+        im = self.make_random_seq()
+        assert(0 <= pos <= 1)
+        x = int(pos * 9 * 28)
+        return im[:, x:(x+28)]
+        '''
+        x = int(pos * 9 * 28)
+        im = self.cropImage(x, 14, 28, 28)
+        return im
+    def get_random_dataset_with_hot_vector(self, n):
+        ndim = 100
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        labels = np.zeros((n, ndim), dtype=np.float32)
+        for i in range(n):
+            pos = np.random.rand()
+            lvec = np.eye(ndim, dtype=np.float32)[int(pos * ndim)]
+            #print('***%f***\n'%pos)
+            #print(lvec)
+            labels[i, :] = lvec
+            im = self.get_random_img_from_pos(pos)
+            images[i, :] = np.reshape(im, 28*28)
+        return chainer.datasets.TupleDataset(images, labels)
     def get_random_dataset_with_label(self, n):
         images = np.zeros((n, 28*28), dtype=np.float32)
         labels = np.zeros((n, 1), dtype=np.float32)
