@@ -87,7 +87,7 @@ class MakeRandomSelfdata:
             '''
             label_0to9 = np.random.randint(10)
             labels[i, :] = label_0to9
-            left, upper, right, lower = self.convert_axis(label_0to9, 8)
+            left, upper, right, lower = self.convert_axis(label_0to9, 5)
             img, _, _ = self.random_crop_in_area(left, upper, right, lower,label_0to9)
             images[i, :] = np.reshape(img, 28*28)
         return chainer.datasets.TupleDataset(images, labels)
