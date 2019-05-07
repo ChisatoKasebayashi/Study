@@ -88,15 +88,23 @@ class MakeRandomSelfdata:
         images = np.zeros((n, 28*28), dtype=np.float32)
         labels = np.zeros((n, 1), dtype=np.float32)
         for i in range(n):
-            '''
-            pos = np.random.rand()
-            labels[i, :] = pos
-            im = self.get_random_img_from_pos(pos)
-            images[i, :] = np.reshape(im, 28*28)
-            '''
             label_0to9 = np.random.randint(10)
             labels[i, :] = label_0to9
             left, upper, right, lower = self.convert_axis(label_0to9, 5)
             img, _, _ = self.random_crop_in_area(left, upper, right, lower,label_0to9)
             images[i, :] = np.reshape(img, 28*28)
         return chainer.datasets.TupleDataset(images, labels)
+    def get_random_dataset_with_x_coordinate(self, n):
+        ndim = 1
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        labels = np.zeros((n, ndim), dtype=np.float32)
+        for i in range(n):
+            pos = np.random.rand()
+            lvec = pos
+            #print('***%f***\n'%pos)
+            #print(lvec)
+            labels[i, :] = lvec
+            im = self.get_random_img_from_pos(pos)
+            images[i, :] = np.reshape(im, 28*28)
+        return chainer.datasets.TupleDataset(images, labels)
+    
