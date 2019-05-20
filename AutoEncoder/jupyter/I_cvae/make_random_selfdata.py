@@ -114,26 +114,15 @@ class MakeRandomSelfdata:
         labels = np.zeros((n, ndim_row+ndim_col), dtype=np.float32)
         labels_row = np.zeros((n, ndim_row), dtype=np.float32)
         labels_col = np.zeros((n, ndim_col), dtype=np.float32)
-        print('data num',n)
         for i in range(n):
             posx = np.random.rand()
             posy = np.random.rand()
-            #posx = 0
-            #posy = 0
             lvec_r = np.eye(ndim_row, dtype=np.float32)[int(posx * ndim_row)]
             lvec_c = np.eye(ndim_col, dtype=np.float32)[int(posy * ndim_col)]
-            #print(lvec_r.shape)
-            #print(lvec_r)
-            #print(lvec_c.shape)
             lvec = np.append(lvec_r, lvec_c)
-            #print(lvec)
-            #print((lvec).shape)
-            #print('***%f***\n'%pos)
-            #print(lvec)
             labels[i, :] = lvec
-            print('(x,y) = ({0}, {1})'.format(int((posx*4*28)+14),int((posy*1*28)+14)))
+            #print('(x,y) = ({0}, {1})'.format(int((posx*4*28)+14),int((posy*1*28)+14)))
             im = self.cropImage(int((posx*4*28)+14), int((posy*1*28)+14), 28, 28)
             images[i, :] = np.reshape(im, 28*28)
-            #print(lvec.shape)
         return chainer.datasets.TupleDataset(images, labels)
     
