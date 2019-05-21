@@ -108,8 +108,8 @@ class MakeRandomSelfdata:
             images[i, :] = np.reshape(im, 28*28)
         return chainer.datasets.TupleDataset(images, labels)
     def get_random_dataset_with_hot_vector_2d(self, n):
-        ndim_row = 50
-        ndim_col = 20
+        ndim_row = 20
+        ndim_col = 50
         images = np.zeros((n, 28*28), dtype=np.float32)
         labels = np.zeros((n, ndim_row+ndim_col), dtype=np.float32)
         labels_row = np.zeros((n, ndim_row), dtype=np.float32)
@@ -117,8 +117,8 @@ class MakeRandomSelfdata:
         for i in range(n):
             posx = np.random.rand()
             posy = np.random.rand()
-            lvec_r = np.eye(ndim_row, dtype=np.float32)[int(posx * ndim_row)]
-            lvec_c = np.eye(ndim_col, dtype=np.float32)[int(posy * ndim_col)]
+            lvec_r = np.eye(ndim_col, dtype=np.float32)[int(posx * ndim_col)]
+            lvec_c = np.eye(ndim_row, dtype=np.float32)[int(posy * ndim_row)]
             lvec = np.append(lvec_r, lvec_c)
             labels[i, :] = lvec
             #print('(x,y) = ({0}, {1})'.format(int((posx*4*28)+14),int((posy*1*28)+14)))
