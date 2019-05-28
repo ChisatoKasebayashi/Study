@@ -125,4 +125,17 @@ class MakeRandomSelfdata:
             im = self.cropImage(int((posx*4*28)+14), int((posy*1*28)+14), 28, 28)
             images[i, :] = np.reshape(im, 28*28)
         return chainer.datasets.TupleDataset(images, labels)
+    def get_random_dataset_with_one_hot_vector_2d(self, n):
+        w, h = self.img.size
+        labels = np.zeros((n, w*h), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*4*28)+14)
+            posy = int((np.random.rand()*1*28)+14)
+            im = self.cropImage(posx, posy, 28, 28)
+            l = np.zeros((h, w), dtype=np.float32)
+            l[posy][posx] = 1
+            labels[i, :] = np.ravel(l)
+            images[i, :] = np.reshape(im, 28*28)
+        return chainer.datasets.TupleDataset(images, labels)
     
