@@ -132,10 +132,18 @@ class MakeRandomSelfdata:
         for i in range(n):
             posx = int((np.random.rand()*4*28)+14)
             posy = int((np.random.rand()*1*28)+14)
-            im = self.cropImage(posx, posy, 28, 28)
-            l = np.zeros((h-28+1, w-28+1), dtype=np.float32)
-            l[posy-14][posx-14] = 1
-            labels[i, :] = np.ravel(l)
-            images[i, :] = np.reshape(im, 28*28)
+            labels[i, :] = self.getLabel(posx,posy)
+            images[i, :] = self.getImage(posx,posy)
         return chainer.datasets.TupleDataset(images, labels)
     
+    def getLabel(self,posx,posy):
+        w, h = self.img.size
+        l = np.zeros((h-28+1, w-28+1), dtype=np.float32)
+        l[posy-14][posx-14] = 1
+        label = np.ravel(l)
+        return label
+        
+    def getImage(self, posx,posy):
+        im = self.cropImage(posx, posy, 28, 28)
+        np.reshape(im, 28*28)
+        return im
