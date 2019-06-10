@@ -127,19 +127,20 @@ class MakeRandomSelfdata:
         return chainer.datasets.TupleDataset(images, labels)
     def get_random_dataset_with_one_hot_vector_2d(self, n):
         w, h = self.img.size
-        labels = np.zeros((n, (w-28+1)*(h-28+1)), dtype=np.float32)
+        ratio = 4
+        labels = np.zeros((n, int((w-28+1)/ratio*(h-28+1)/ratio), dtype=np.float32)
         images = np.zeros((n, 28*28), dtype=np.float32)
         for i in range(n):
             posx = int((np.random.rand()*4*28)+14)
             posy = int((np.random.rand()*1*28)+14)
-            labels[i, :] = self.getLabel(posx,posy)
+            labels[i, :] = self.getLabel(posx,posy,ratio)
             images[i, :] = self.getImage(posx,posy)
         return chainer.datasets.TupleDataset(images, labels)
     
-    def getLabel(self,posx,posy):
+    def getLabel(self,posx,posy, ratio=1):
         w, h = self.img.size
-        l = np.zeros((h-28+1, w-28+1), dtype=np.float32)
-        l[posy-14][posx-14] = 1
+        l = np.zeros(((h-28+1)/ratio, (w-28+1)/ratio), dtype=np.float32)
+        l[(posy-14)/ratio][(posx-14)/ratio] = 1
         label = np.ravel(l)
         return label
         
