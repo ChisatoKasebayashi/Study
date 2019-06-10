@@ -17,7 +17,11 @@ center_point_list = np.delete(center_point_list,0,0)
 
 class MakeRandomSelfdata:
     def __init__(self, img):
-        self.img = Image.open(img).convert("L")  
+        self.img = Image.open(img).convert("L")
+        self.onehot_ratio = 4
+        w,h = self.img.size
+        self.onehot_w = int((w-28)/self.onehot_ratio)+1
+        self.onehot_h = int((h-28)/self.onehot_ratio)+1
     def random_crop_in_area(self, left, upper, right, lower, label):
         image_list = np.empty(28*28,dtype=np.float32)
         randx = np.random.randint(left, right)
@@ -126,25 +130,32 @@ class MakeRandomSelfdata:
             images[i, :] = np.reshape(im, 28*28)
         return chainer.datasets.TupleDataset(images, labels)
     def get_random_dataset_with_one_hot_vector_2d(self, n):
-        w, h = self.img.size
-        ratio = 4
-        labels = np.zeros((n, int((w-28+1)/ratio*(h-28+1)/ratio), dtype=np.float32)
+        labels = np.zeros((n, self.onehot_w*self.onehot_h), dtype=np.float32)
+        #print('get_random_dataset_with_one_hot_vector' + str(labels.shape))
+        #print(onehot_w)
+        #print(onehot_h)
+        #print(onehot_w*onehot_h)
         images = np.zeros((n, 28*28), dtype=np.float32)
         for i in range(n):
             posx = int((np.random.rand()*4*28)+14)
             posy = int((np.random.rand()*1*28)+14)
-            labels[i, :] = self.getLabel(posx,posy,ratio)
+            labels[i, :] = self.getLabel(posx,posy)
             images[i, :] = self.getImage(posx,posy)
         return chainer.datasets.TupleDataset(images, labels)
     
-    def getLabel(self,posx,posy, ratio=1):
-        w, h = self.img.size
-        l = np.zeros(((h-28+1)/ratio, (w-28+1)/ratio), dtype=np.float32)
-        l[(posy-14)/ratio][(posx-14)/ratio] = 1
+    def getLabel(self,posx,posy):
+        l = np.zeros((self.onehot_h, self.onehot_w), dtype=np.float32)
+        l[int((posy-14)/self.onehot_ratio)][int((posx-14)/self.onehot_ratio)] = 1
         label = np.ravel(l)
+        #print('getLabel' + str(label.shape))
+        #print(onehot_w)
+        #print(onehot_h)
         return label
         
     def getImage(self, posx,posy):
         im = self.cropImage(posx, posy, 28, 28)
         np.reshape(im, 28*28)
         return im
+    
+    def getOnehotSize(self):
+        return np.array((self.onehot_h, self.onehot_w),np.uint8)
