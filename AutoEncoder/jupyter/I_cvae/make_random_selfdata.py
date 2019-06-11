@@ -18,7 +18,7 @@ center_point_list = np.delete(center_point_list,0,0)
 class MakeRandomSelfdata:
     def __init__(self, img):
         self.img = Image.open(img).convert("L")
-        self.onehot_ratio = 4
+        self.onehot_ratio = 2
         w,h = self.img.size
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
@@ -158,4 +158,4 @@ class MakeRandomSelfdata:
         return im
     
     def getOnehotSize(self):
-        return np.array((self.onehot_h, self.onehot_w),np.uint8)
+        return np.array((self.onehot_h, self.onehot_w),np.int32)
