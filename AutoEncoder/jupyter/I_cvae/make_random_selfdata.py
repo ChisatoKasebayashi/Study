@@ -18,7 +18,7 @@ center_point_list = np.delete(center_point_list,0,0)
 class MakeRandomSelfdata:
     def __init__(self, img):
         self.img = Image.open(img).convert("L")
-        self.onehot_ratio = 2
+        self.onehot_ratio = 1
         w,h = self.img.size
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
@@ -137,8 +137,8 @@ class MakeRandomSelfdata:
         #print(onehot_w*onehot_h)
         images = np.zeros((n, 28*28), dtype=np.float32)
         for i in range(n):
-            posx = int((np.random.rand()*4*28)+14)
-            posy = int((np.random.rand()*1*28)+14)
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
             labels[i, :] = self.getLabel(posx,posy)
             images[i, :] = self.getImage(posx,posy)
         return chainer.datasets.TupleDataset(images, labels)
