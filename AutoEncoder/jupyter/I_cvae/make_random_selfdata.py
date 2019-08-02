@@ -152,28 +152,13 @@ class MakeRandomSelfdata:
             posy = int((np.random.rand()*(1*28+1))+14)
             images[i, :] = self.getImage(posx,posy)
             hotvec = self.getLabel(posx,posy)
-            old_hotvec = hotvec
-            hotvec_l = hotvec.tolist() 
-            #print("one hot vec",old_hotvec)
-            #print(hotvec_l.index(1))
-            # avr = hot vec の位置（前から数えて何番目に１があるか）を返す関数の戻り値を標準偏差の平均とする
-            avr = hotvec_l.index(1)
-            hotvec[avr] = 0
-            #print("len hotvwc_l", len(hotvec_l))
-            for n in range(random_nun):
-                rand_n = np.random.normal(avr, 1)
-                if(int(rand_n)<0 or len(hotvec_l)<=int(rand_n)):
-                    continue
-                # でた乱数からほっとベクトルの位置を決めてそこに0.1くらいずつたす
-                hotvec[int(rand_n)] = hotvec[int(rand_n)] + 1/devariation
-                #print(hotvec)
-            labels[i, :] = hotvec
-            
+            g_hotvec =  self.make_gentle_onehot_vec(hotvec)
+            labels[i, :] = g_hotvec
         return chainer.datasets.TupleDataset(images, labels)
     
     def get_random_dataset_for_rcvae(self, n):
-        deviation = 10
-        random_nun = 100
+        deviation = 15
+        random_nun = 150
         labels = np.zeros((n, self.onehot_w*self.onehot_h), dtype=np.float32)
         images = np.zeros((n, 28*28), dtype=np.float32)
         context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
