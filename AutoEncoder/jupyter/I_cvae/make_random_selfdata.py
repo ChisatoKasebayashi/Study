@@ -171,6 +171,40 @@ class MakeRandomSelfdata:
             
         return chainer.datasets.TupleDataset(images, labels)
     
+    def get_random_dataset_for_rcvae(self, n):
+        deviation = 10
+        random_nun = 100
+        labels = np.zeros((n, self.onehot_w*self.onehot_h), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
+            images[i, :] = self.getImage(posx,posy) # imageをn個images[]にためてる
+            hotvec = self.getLabel(posx,posy)
+            g_hotvec =  self.make_gentle_onehot_vec(hotvec)
+            labels[i, :] = g_hotvec
+        for n in range(n):
+            tp = np.concatenate([images[n], labels[n]])
+            context[n, :] = tp
+        return chainer.datasets.TupleDataset(context, images)
+
+    def make_gentle_onehot_vec(self,hotvec):
+        g_hotvec = hotvec.copy()
+        deviation = 10
+        random_nun = 100
+        hotvec_l = hotvec.tolist()
+        average = hotvec_l.index(1)
+        g_hotvec[average] = 0
+        rand_n = np.random.normal(average, deviation, random_nun)
+        for n in range(random_nun):
+            index = rand_n[n].astype('int32')
+            if(index<0 or len(hotvec_l)<=index):
+                continue
+            g_hotvec[index] = g_hotvec[index] + 1
+        ret = g_hotvec/max(g_hotvec)
+        return ret
+
     def getLabel(self,posx,posy):
         l = np.zeros((self.onehot_h, self.onehot_w), dtype=np.float32)
         l[int((posy-14)/self.onehot_ratio)][int((posx-14)/self.onehot_ratio)] = 1
