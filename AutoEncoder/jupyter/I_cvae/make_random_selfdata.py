@@ -184,10 +184,7 @@ class MakeRandomSelfdata:
             hotvec = self.getLabel(posx,posy)
             g_hotvec =  self.make_gentle_onehot_vec(hotvec)
             labels[i, :] = g_hotvec
-        for n in range(n):
-            tp = np.concatenate([images[n], labels[n]])
-            context[n, :] = tp
-        return chainer.datasets.TupleDataset(context, images)
+        return chainer.datasets.TupleDataset(labels, images)
 
     def make_gentle_onehot_vec(self,hotvec):
         g_hotvec = hotvec.copy()
@@ -210,8 +207,8 @@ class MakeRandomSelfdata:
         l[int((posy-14)/self.onehot_ratio)][int((posx-14)/self.onehot_ratio)] = 1
         label = np.ravel(l)
         #print('getLabel' + str(label.shape))
-        #print(onehot_w)
-        #print(onehot_h)
+        #print(self.onehot_w)
+        #print(self.onehot_h)
         return label
         
     def getImage(self, posx,posy):
