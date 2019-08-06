@@ -156,7 +156,7 @@ class MakeRandomSelfdata:
             labels[i, :] = g_hotvec
         return chainer.datasets.TupleDataset(images, labels)
     
-    def get_random_dataset_for_rcvae(self, n):
+    def get_random_dataset_for_rcvae(self, n): # one dimentional gauss
         deviation = 15
         random_nun = 150
         labels = np.zeros((n, self.onehot_w*self.onehot_h), dtype=np.float32)
@@ -171,7 +171,7 @@ class MakeRandomSelfdata:
             labels[i, :] = g_hotvec
         return chainer.datasets.TupleDataset(labels, images)
 
-    def make_gentle_onehot_vec(self,hotvec):
+    def make_gentle_onehot_vec(self,hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
         deviation = 10
         random_nun = 100
@@ -186,7 +186,58 @@ class MakeRandomSelfdata:
             g_hotvec[index] = g_hotvec[index] + 1
         ret = g_hotvec/max(g_hotvec)
         return ret
-
+    
+    def get_random_dataset_for_rcvae_with_2d_onehot(self, n): # two dimentional gauss
+        deviation = 15
+        random_nun = 150
+        labels = np.zeros((n, self.onehot_w*self.onehot_h), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
+            images[i, :] = self.getImage(posx,posy) # imageをn個images[]にためてる
+            hotvec = self.getLabel(posx,posy)
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
+            labels[i, :] = g_hotvec
+        return chainer.datasets.TupleDataset(labels, images)
+                                                       
+    def make_gentle_onehot_vec_2d(self, hotvec): # two dimentional gauss
+        #print(hotvec.shape, 'hotvec shape')
+        random_nun = 200
+        deviation = [[5, 0], [0, 5]]
+        #values = np.random.multivariate_normal(mu, sigma, 1000)
+        g_hotvec = hotvec.copy()
+        average_np = np.where(hotvec==1)
+        #print(average_np, 'average')
+        average = [average_np[1][0],average_np[0][0]]
+        #print(average)
+        g_hotvec[average[1],average[0]] = 0
+        rand_n = np.random.multivariate_normal(average, deviation, random_nun)
+        #print(rand_n.shape, 'rand_n')
+        for n in range(len(rand_n)):
+            #print(rand_n)
+            index_x = rand_n[n][0].astype('int32')
+            index_y = rand_n[n][1].astype('int32')
+            if(index_x < 0 or self.onehot_w <= index_x):
+                #print(index_x, 'index_x')
+                continue
+            if(index_y < 0 or self.onehot_h <= index_y):
+                #print(index_y, 'index_y')
+                continue
+            #print('UnKO')
+            g_hotvec[index_y][index_x] = g_hotvec[index_y][index_x] + 1
+        g_hotvec = np.reshape(g_hotvec, self.onehot_h*self.onehot_w)
+        #print(g_hotvec,'ghotvec')
+        #print(max(g_hotvec),'max ')
+        ret = g_hotvec/np.max(g_hotvec)
+        #ret = g_hotvec
+        #print(max(ret))
+        #print(ret, 'ret')
+        return ret
+    
     def getLabel(self,posx,posy):
         l = np.zeros((self.onehot_h, self.onehot_w), dtype=np.float32)
         l[int((posy-14)/self.onehot_ratio)][int((posx-14)/self.onehot_ratio)] = 1
