@@ -203,6 +203,23 @@ class MakeRandomSelfdata:
             g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
             labels[i, :] = g_hotvec
         return chainer.datasets.TupleDataset(labels, images)
+    
+    def get_random_dataset_for_rcvae_with_2d_onehot_add_Point_symmetric_image(self, n): # two dimentional gauss
+        deviation = 15
+        random_nun = 150
+        labels = np.zeros((n, self.onehot_w*self.onehot_h), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
+            images[i, :] = self.getImage(posx,posy) # imageをn個images[]にためてる
+            hotvec = self.getLabel(posx,posy)
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
+            labels[i, :] = g_hotvec
+        return chainer.datasets.TupleDataset(labels, images)
                                                        
     def make_gentle_onehot_vec_2d(self, hotvec): # two dimentional gauss
         #print(hotvec.shape, 'hotvec shape')
