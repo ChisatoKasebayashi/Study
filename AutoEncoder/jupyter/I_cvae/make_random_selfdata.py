@@ -254,7 +254,11 @@ class MakeRandomSelfdata:
         #print(max(ret))
         #print(ret, 'ret')
         return ret
-    
+    def flipImage_horizonal_Next2_vartical(self, arr, w, h):
+        img = np.reshape(arr, (w,h))
+        mirror_img = img[:, ::-1]
+        f_img = mirror_img[::-1, :]
+        return np.reshape(f_img, w*h)
     def getLabel(self,posx,posy):
         l = np.zeros((self.onehot_h, self.onehot_w), dtype=np.float32)
         l[int((posy-14)/self.onehot_ratio)][int((posx-14)/self.onehot_ratio)] = 1
