@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from chainer.datasets import tuple_dataset
 from PIL import Image, ImageDraw
+import cv2
 
 center_point_list = np.empty((1, 2))
 for row in range(2):
@@ -17,9 +18,9 @@ center_point_list = np.delete(center_point_list,0,0)
 
 class MakeRandomSelfdata:
     def __init__(self, img):
-        self.img = Image.open(img).convert("L")
         self.onehot_ratio = 1
-        w,h = self.img.size
+        self.img = cv2.imread(img,cv2.IMREAD_GRAYSCALE)
+        h,w = self.img.shape[:2]
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
     def random_crop_in_area(self, left, upper, right, lower, label):
@@ -31,11 +32,14 @@ class MakeRandomSelfdata:
         c_point = np.array(c_point, dtype=np.float32)
         return crop_img, label, c_point
     def cropImage(self, center_x, center_y, height, width):
-        left = center_x - width/2
-        upper = center_y - height/2
-        right = center_x + width/2
-        lower = center_y + height/2
-        c_img = self.img.crop((left, upper, right, lower))
+        half_w = int(width/2)
+        half_h = int(height/2)
+        left = center_x - half_w
+        upper = center_y - half_h
+        right = center_x + half_w
+        lower = center_y + half_h
+        #c_img = self.img.crop((left, upper, right, lower))
+        c_img = self.img[upper:lower, left:right]
         carr = np.asarray(c_img)
         carr = carr.flatten()
         carr = np.asarray(carr).astype(np.float32)
@@ -242,6 +246,15 @@ class MakeRandomSelfdata:
         mirror_img = img[:, ::-1]
         f_img = mirror_img[::-1, :]
         return np.reshape(f_img, w*h)
+    
+    def rotateImage_and_cut(self, deg, center, size):
+        rot_mat = cv2.getRotationMatrix2D(center, deg, 1.0)
+        rot_mat[0][2] += -center[0]+size[0]/2 # -(元画像内での中心位置)+(切り抜きたいサイズの中心)
+        rot_mat[1][2] += -center[1]+size[1]/2 # 同上
+        res = cv2.warpAffine(self.img, rot_mat, size)
+        carr = res.flatten()
+        return np.array(carr, dtype=np.float32)/255
+    
     def getLabel(self,posx,posy):
         l = np.zeros((self.onehot_h, self.onehot_w), dtype=np.float32)
         l[int((posy-14)/self.onehot_ratio)][int((posx-14)/self.onehot_ratio)] = 1
