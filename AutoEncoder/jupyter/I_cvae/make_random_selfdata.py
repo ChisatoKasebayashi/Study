@@ -217,14 +217,16 @@ class MakeRandomSelfdata:
         for i in range(n):
             posx = int((np.random.rand()*(4*28+1))+14)
             posy = int((np.random.rand()*(1*28+1))+14)
-            deg = np.random.randint(90)
+            #print(posx, posy, 'x, y')
+            deg = np.random.randint(180)
+            #print(deg, 'deg in func')
             im, rad = self.getRotateImageAndRad(posx, posy, deg)
             images[i, :] = im
             hotvec = self.getLabel(posx,posy)
             hotvec_l = hotvec.tolist()
             average = hotvec_l.index(1)
             g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
-            angle = [(np.sin(rad)+1)/2, (np.cos(rad)+1)/2]
+            angle = [np.sin(rad), (np.cos(rad)+1)/2]
             labels[i, :] = np.concatenate([g_hotvec, angle])
         return chainer.datasets.TupleDataset(labels, images)
                                                        
@@ -290,9 +292,20 @@ class MakeRandomSelfdata:
         return im
     
     def getRotateImageAndRad(self, posx, posy, deg):
-        res = self.rotateImage_and_cut(deg, (posx+14,posy+14), (28,28) )
+        im = self.cropImage(posx, posy, 28,28)
+        #self.dispImage(im)
+        #print('------------')
+        res = self.rotateImage_and_cut(deg, (posx,posy), (28,28) )
         rad = rad=deg*(np.pi/180)
         return res, rad
     
     def getOnehotSize(self):
         return np.array((self.onehot_h, self.onehot_w),np.int32)
+    
+    def dispImage(self,img_vec):
+        #title = 'Label number is ('+ str(label_x) + ',' + str(label_y) + ')' 
+        pixels = (img_vec * 256).reshape((28, 28))
+        plt.imshow(pixels, cmap='gray')
+        plt.axis("off")
+        #plt.title(title)
+        plt.show()
