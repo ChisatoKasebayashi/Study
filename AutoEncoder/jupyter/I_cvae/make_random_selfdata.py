@@ -23,6 +23,7 @@ class MakeRandomSelfdata:
         h,w = self.img.shape[:2]
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
+        self.rotation_angle = 180 #degree
     def random_crop_in_area(self, left, upper, right, lower, label):
         image_list = np.empty(28*28,dtype=np.float32)
         randx = np.random.randint(left, right)
@@ -175,7 +176,7 @@ class MakeRandomSelfdata:
             labels[i, :] = g_hotvec
         return chainer.datasets.TupleDataset(labels, images)
 
-    def make_gentle_onehot_vec(self,hotvec): # one dimentional gauss
+    def make_gentle_onehot_vec(self, hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
         deviation = 10
         random_nun = 100
@@ -218,7 +219,7 @@ class MakeRandomSelfdata:
             posx = int((np.random.rand()*(4*28+1))+14)
             posy = int((np.random.rand()*(1*28+1))+14)
             #print(posx, posy, 'x, y')
-            deg = np.random.randint(180)
+            deg = np.random.randint(self.rotation_angle)
             #print(deg, 'deg in func')
             im, rad = self.getRotateImageAndRad(posx, posy, deg)
             images[i, :] = im
@@ -229,7 +230,38 @@ class MakeRandomSelfdata:
             angle = [np.sin(rad), (np.cos(rad)+1)/2]
             labels[i, :] = np.concatenate([g_hotvec, angle])
         return chainer.datasets.TupleDataset(labels, images)
-                                                       
+    def get_random_dataset_for_rcvae_with_2d_onehot_and_singhotvec_cosghotvec(self, n):
+        deviation = 15
+        random_nun = 150
+        labels = np.zeros((n, self.onehot_w*self.onehot_h + self.rotation_angle*2), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
+            deg = np.random.randint(self.rotation_angle)
+            #########image[condition]###########
+            im, rad = self.getRotateImageAndRad(posx, posy, deg)
+            images[i, :] = im 
+            #########image[condition]###########
+            
+            #*********probMap[input]***********#
+            hotvec = self.getLabel(posx,posy)
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
+            #*********probMap[input]***********#
+            sin_onehot = self.getLabel_specified_1d(deg, self.rotation_angle)
+            cos_onehot = self.getLabel_specified_1d(deg, self.rotation_angle)
+            sin_ghot = self.make_gentle_onehot_vec(sin_onehot)
+            cos_ghot = self.make_gentle_onehot_vec(cos_onehot)
+            #print(type(sin_ghot), 'sin_ghot type')
+            angle = np.concatenate([sin_ghot, cos_ghot])
+            #print(angle.shape,'angle')
+            #print(g_hotvec.shape, 'ghotvec')
+            labels[i, :] = np.concatenate([g_hotvec, angle])
+        return chainer.datasets.TupleDataset(labels, images)
+    
     def make_gentle_onehot_vec_2d(self, hotvec): # two dimentional gauss
         #print(hotvec.shape, 'hotvec shape')
         random_nun = 200
@@ -284,6 +316,12 @@ class MakeRandomSelfdata:
         #print('getLabel' + str(label.shape))
         #print(self.onehot_w)
         #print(self.onehot_h)
+        return label
+
+    def getLabel_specified_1d(self, pos, size):
+        l = np.zeros(size, dtype=np.float32)
+        l[int(pos)] = 1
+        label = np.ravel(l)
         return label
         
     def getImage(self, posx,posy):
