@@ -231,10 +231,13 @@ class MakeRandomSelfdata:
             labels[i, :] = np.concatenate([g_hotvec, angle])
         return chainer.datasets.TupleDataset(labels, images)
     def get_random_dataset_for_rcvae_with_2d_GentleOnehotPosMap_and_1d_GentleOnehotTheta(self, n):
-        labels = np.zeros((n, self.onehot_w*self.onehot_h + self.rotation_angle), dtype=np.float32)
+        angle_dim = self.rotation_angle*17
+        labels = np.zeros((n, self.onehot_w*self.onehot_h + angle_dim), dtype=np.float32)
         images = np.zeros((n, 28*28), dtype=np.float32)
         context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
         debug_data = np.zeros((n, 3), dtype=np.float32)
+        
+        print(angle_dim, 'angle_dim')
         for i in range(n):
             posx = int((np.random.rand()*(4*28+1))+14)
             posy = int((np.random.rand()*(1*28+1))+14)
@@ -252,8 +255,41 @@ class MakeRandomSelfdata:
             #*********probMap[input]***********#
             angle_onehot = self.getLabel_specified_1d(deg, self.rotation_angle)
             angle_ghot = self.make_gentle_onehot_vec(angle_onehot)
+            angle_ghot = np.tile(angle_ghot,17)
+            #print(angle_ghot.shape, 'angle_ghot shape')
+            #print(np.concatenate([g_hotvec, angle_ghot]).shape, 'cnca')
+            #print(g_hotvec.shape, 'ghot_vec')
             labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
+            debug_data[i, :] = [posx, posy, deg]
+        return chainer.datasets.TupleDataset(labels, images), debug_data
+    
+    def get_random_dataset_for_rcvae_with_2d_GentleOnehotPosMap_and_2d_GentleOnehotSinCos(self, n):
+        labels = np.zeros((n, self.onehot_w*self.onehot_h + self.rotation_angle), dtype=np.float32) #posmap + angleMap　が入る
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        angle = np.zeros((n, self.rotation_angle*2))
+        debug_data = np.zeros((n, 3), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
+            #########image[condition]###########
+            im, rad = self.getRotateImageAndRad(posx, posy, deg)
+            images[i, :] = im 
+            #########image[condition]###########
             
+            #*********probPosMap[input]***********#
+            hotvec = self.getLabel(posx,posy)
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
+            #*********probPosMap[input]***********#
+            
+            #*********probAngleMap[input]***********#
+            deg = np.random.randint(self.rotation_angle)
+            
+            angle_onehot = self.getLabel_specified_1d(deg, self.rotation_angle)
+            angle_ghot = self.make_gentle_onehot_vec(angle_onehot)
+            #*********probAngleMap[input]***********#
+            labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
             debug_data[i, :] = [posx, posy, deg]
         return chainer.datasets.TupleDataset(labels, images), debug_data
     
