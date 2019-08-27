@@ -178,8 +178,8 @@ class MakeRandomSelfdata:
 
     def make_gentle_onehot_vec(self, hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
-        deviation = 5
-        random_nun = 100
+        deviation = 20
+        random_nun = 200
         hotvec_l = hotvec.tolist()
         average = hotvec_l.index(1)
         g_hotvec[average] = 0
@@ -230,7 +230,7 @@ class MakeRandomSelfdata:
             angle = [np.sin(rad), (np.cos(rad)+1)/2]
             labels[i, :] = np.concatenate([g_hotvec, angle])
         return chainer.datasets.TupleDataset(labels, images)
-    def get_random_dataset_for_rcvae_with_2d_onehot_and_singhotvec_cosghotvec(self, n):
+    def get_random_dataset_for_rcvae_with_2d_GentleOnehotPosMap_and_1d_GentleOnehotTheta(self, n):
         labels = np.zeros((n, self.onehot_w*self.onehot_h + self.rotation_angle), dtype=np.float32)
         images = np.zeros((n, 28*28), dtype=np.float32)
         context = np.zeros((n, self.onehot_w*self.onehot_h + (28*28)), dtype=np.float32)
