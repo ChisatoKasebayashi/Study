@@ -178,7 +178,7 @@ class MakeRandomSelfdata:
 
     def make_gentle_onehot_vec(self, hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
-        deviation = 20
+        deviation = 15
         random_nun = 200
         hotvec_l = hotvec.tolist()
         average = hotvec_l.index(1)
