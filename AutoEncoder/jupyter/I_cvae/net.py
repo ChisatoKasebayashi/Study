@@ -33,19 +33,21 @@ class MyCVAE(chainer.Chain):
         return self.decode(self.encode(x, y)[0], y, sigmoid)
 
     def encode(self, x, y):
-        h0 = F.dropout(F.relu(self.le0(x)), ratio=0.3)
-        h1 = F.dropout(F.tanh(self.le1(h0)), ratio=0.3)
-        y1 = F.dropout(F.relu(self.le1_y(y)), ratio=0.3)
-        h2 = F.dropout(F.tanh(self.le2_y(y1)), ratio=0.3)
+        h0 = F.dropout(F.relu(self.le0(x)), ratio=0.1)
+        h1 = F.dropout(F.tanh(self.le1(h0)), ratio=0.1)
+        
+        y1 = F.dropout(F.relu(self.le1_y(y)), ratio=0.1)
+        h2 = F.dropout(F.tanh(self.le2_y(y1)), ratio=0.1)
         mu = self.le2_mu(F.concat([h1, h2]))
         ln_var = self.le2_ln_var(F.concat([h1, h2]))  # log(sigma**2)
         return mu, ln_var
 
     def decode(self, z, y, sigmoid=True):
-        h0 = F.dropout(F.relu(self.ld0(z)), ratio=0.3)
-        h1 = F.dropout(F.tanh(self.ld1(h0)), ratio=0.3)
-        y1 = F.dropout(F.relu(self.ld1_y(y)), ratio=0.3)
-        h2 = F.dropout(F.tanh(self.ld2_y(y1)), ratio=0.3)
+        h0 = F.dropout(F.relu(self.ld0(z)), ratio=0.1)
+        h1 = F.dropout(F.tanh(self.ld1(h0)), ratio=0.1)
+        
+        y1 = F.dropout(F.relu(self.ld1_y(y)), ratio=0.1)
+        h2 = F.dropout(F.tanh(self.ld2_y(y1)), ratio=0.1)
         h3 = self.ld2(F.concat([h1, h2]))
         if sigmoid:
             return F.sigmoid(h3)
