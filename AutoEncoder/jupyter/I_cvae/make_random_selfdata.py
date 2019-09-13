@@ -23,7 +23,7 @@ class MakeRandomSelfdata:
         h,w = self.img.shape[:2]
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
-        self.rotation_angle = 20 #degree
+        self.rotation_angle = 180 #degree
     def random_crop_in_area(self, left, upper, right, lower, label):
         image_list = np.empty(28*28,dtype=np.float32)
         randx = np.random.randint(left, right)
@@ -33,8 +33,8 @@ class MakeRandomSelfdata:
         c_point = np.array(c_point, dtype=np.float32)
         return crop_img, label, c_point
     def cropImage(self, center_x, center_y, height, width):
-        half_w = int(width/2)
-        half_h = int(height/2)
+        half_w = int(width*0.5)
+        half_h = int(height*0.5)
         left = center_x - half_w
         upper = center_y - half_h
         right = center_x + half_w
@@ -291,6 +291,36 @@ class MakeRandomSelfdata:
             debug_data[i, :] = [posx, posy, deg]
         return chainer.datasets.TupleDataset(labels, images), debug_data
     
+    def get_random_dataset_for_rcvae_with_2d_GentleOnehotSinCos(self, n, f):
+        labels = np.zeros((n, self.onehot_w*self.onehot_h + 40*80), dtype=np.float32) #posmap + angleMap　が入る
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        angle = np.zeros((n, self.rotation_angle*2))
+        debug_data = np.zeros((n, 3), dtype=np.float32)
+        for i in range(n):
+            deg = np.random.randint(self.rotation_angle)
+            deg = self.getEvenOrOddNumber(f, deg)
+            posx = 14
+            posy = 14
+            #########image[condition]###########
+            im, rad = self.getRotateImageAndRad(posx, posy, deg)
+            images[i, :] = im 
+            #########image[condition]###########
+            
+            #*********probPosMap[input]***********#
+            hotvec = self.getLabel(posx,posy)
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
+            #*********probPosMap[input]***********#
+            
+            #*********probAngleMap[input]***********#
+            angle_ghot = self.make_angle_map(deg)
+            #*********probAngleMap[input]***********#
+            labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
+            debug_data[i, :] = [posx, posy, deg]
+
+        return chainer.datasets.TupleDataset(labels, images), debug_data
+    
     def make_angle_map(self, deg):
         w=80
         h=40
@@ -406,12 +436,23 @@ class MakeRandomSelfdata:
         im = self.cropImage(posx, posy, 28,28)
         #self.dispImage(im)
         #print('------------')
-        res = self.rotateImage_and_cut(deg, (posx,posy), (28,28) )
-        rad = rad=deg*(np.pi/180)
+        if(deg == 0):
+            res = im
+        else:
+            res = self.rotateImage_and_cut(deg, (posx,posy), (28,28) )
+        rad = deg*(np.pi/180)
         return res, rad
     
     def getOnehotSize(self):
         return np.array((self.onehot_h, self.onehot_w),np.int32)
+    
+    def getEvenOrOddNumber(self, f, deg): # f==0:Even number, f==1:Odd number
+        x  = int(deg*0.5)
+        if(f==0):
+            return 2*x
+        if(f==1):
+            return 2*x + 1
+        
     
     def dispImage(self,img_vec):
         #title = 'Label number is ('+ str(label_x) + ',' + str(label_y) + ')' 
