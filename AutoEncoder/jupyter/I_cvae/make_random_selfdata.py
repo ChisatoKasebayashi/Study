@@ -299,13 +299,22 @@ class MakeRandomSelfdata:
         for i in range(n):
             deg = np.random.randint(self.rotation_angle)
             deg = self.getEvenOrOddNumber(f, deg)
-            pos_f = np.random.randint(0,2)
+            pos_f = np.random.randint(0,5)
             if(pos_f ==0):
                 posx = 14
                 posy = 14
             elif(pos_f == 1):
                 posx = 14
                 posy = 28
+            elif(pos_f == 2):
+                posx = 60
+                posy = 20
+            elif(pos_f == 3):
+                posx = 90
+                posy = 35
+            elif(pos_f == 4):
+                posx = 105
+                posy = 35
             #########image[condition]###########
             im, rad = self.getRotateImageAndRad(posx, posy, deg)
             images[i, :] = im 
