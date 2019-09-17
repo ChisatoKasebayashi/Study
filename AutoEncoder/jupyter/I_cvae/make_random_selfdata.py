@@ -274,7 +274,7 @@ class MakeRandomSelfdata:
             deg = np.random.randint(self.rotation_angle)
             #########image[condition]###########
             im, rad = self.getRotateImageAndRad(posx, posy, deg)
-            images[i, :] = im 
+            images[i, :] = self.addBlur(im) 
             #########image[condition]###########
             
             #*********probPosMap[input]***********#
@@ -290,6 +290,14 @@ class MakeRandomSelfdata:
             labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
             debug_data[i, :] = [posx, posy, deg]
         return chainer.datasets.TupleDataset(labels, images), debug_data
+    
+    def addBlur(self, src_v):
+        filter_l = [1, 3, 5, 1]
+        n = np.random.randint(len(filter_l))
+        im = np.reshape(src_v, (28,28))
+        res = cv2.GaussianBlur(im,(filter_l[n],filter_l[n]),0)
+        res_v = np.reshape(res, 28*28)
+        return res_v
     
     def make_angle_map(self, deg):
         w=80
