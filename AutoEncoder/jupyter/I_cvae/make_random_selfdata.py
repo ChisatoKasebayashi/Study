@@ -263,7 +263,7 @@ class MakeRandomSelfdata:
             debug_data[i, :] = [posx, posy, deg]
         return chainer.datasets.TupleDataset(labels, images), debug_data
     
-    def get_random_dataset_for_rcvae_with_2d_GentleOnehotPosMap_and_2d_GentleOnehotSinCos(self, n):
+    def get_random_dataset_for_rcvae_with_2d_GentleOnehotPosMap_and_2d_GentleOnehotSinCos(self, n, f):
         labels = np.zeros((n, self.onehot_w*self.onehot_h + 40*80), dtype=np.float32) #posmap + angleMap　が入る
         images = np.zeros((n, 28*28), dtype=np.float32)
         angle = np.zeros((n, self.rotation_angle*2))
