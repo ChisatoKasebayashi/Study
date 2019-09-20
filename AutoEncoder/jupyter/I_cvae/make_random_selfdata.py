@@ -272,6 +272,7 @@ class MakeRandomSelfdata:
             posx = int((np.random.rand()*(4*28+1))+14)
             posy = int((np.random.rand()*(1*28+1))+14)
             deg = np.random.randint(self.rotation_angle)
+            deg = self.getEvenOrOddNumber(f, deg)
             #########image[condition]###########
             im, rad = self.getRotateImageAndRad(posx, posy, deg)
             images[i, :] = self.addBlur(im) 
@@ -428,3 +429,10 @@ class MakeRandomSelfdata:
         plt.axis("off")
         #plt.title(title)
         plt.show()
+        
+    def getEvenOrOddNumber(self, f, deg): # f==0:Even number, f==1:Odd number
+        x  = int(deg*0.5)
+        if(f==0):
+            return 2*x
+        if(f==1):
+            return 2*x + 1
