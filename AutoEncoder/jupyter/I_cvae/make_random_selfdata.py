@@ -436,3 +436,17 @@ class MakeRandomSelfdata:
             return 2*x
         if(f==1):
             return 2*x + 1
+        
+    def read_dataset(self, data_dir, num, image_dim, label_dim): # 0:訓練データ　1:テストデータ
+        images = np.zeros((num, image_dim), dtype=np.float32)
+        labels = np.zeros((num, label_dim), dtype=np.float32)
+        for n in range(num):
+            img = data_dir + '{0:09d}'.format(n) + '.jpg'
+            im = cv2.imread(img, cv2.IMREAD_GRAYSCALE).astype(np.float32)
+            im = im / 255.
+            images[n, :] = im.flatten()
+            label = data_dir + '{0:09d}'.format(n) + '_label'+ '.jpg'
+            la = cv2.imread(label, cv2.IMREAD_GRAYSCALE).astype(np.float32)
+            la = la / 255.
+            labels[n, :] = la.flatten()
+        return chainer.datasets.TupleDataset(images, labels)
