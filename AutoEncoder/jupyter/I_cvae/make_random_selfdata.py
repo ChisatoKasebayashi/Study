@@ -175,7 +175,37 @@ class MakeRandomSelfdata:
             g_hotvec =  self.make_gentle_onehot_vec(hotvec)
             labels[i, :] = g_hotvec
         return chainer.datasets.TupleDataset(labels, images)
-
+    def get_random_dataset_with_2d_GentleOnehotPosMap_and_2d_GentleOnethot_degVec(self, n, f):##############################
+        labels = np.zeros((n, self.onehot_w*self.onehot_h + 180*17), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        angle = np.zeros((n, self.rotation_angle*2))
+        debug_data = np.zeros((n, 3), dtype=np.float32)
+        for i in range(n):
+            posx = int((np.random.rand()*(4*28+1))+14)
+            posy = int((np.random.rand()*(1*28+1))+14)
+            deg = np.random.randint(self.rotation_angle)
+            deg = self.getEvenOrOddNumber(f, deg)
+            #########image[condition]###########
+            im, rad = self.getRotateImageAndRad(posx, posy, deg)
+            images[i, :] = self.addBlur(im) 
+            #########image[condition]###########
+            
+            #*********probPosMap[input]***********#
+            hotvec = self.getLabel(posx,posy)
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d(np.reshape(hotvec,(self.onehot_h,self.onehot_w)))
+            #*********probPosMap[input]***********#
+            
+            #*********probAngleMap[input]***********#
+            angle_onehot = self.getLabel_specified_1d(deg, 180)
+            angle_ghot = self.make_gentle_onehot_vec(angle_onehot)
+            angle_ghot = np.tile(angle_ghot,17)
+            #*********probAngleMap[input]***********#
+            labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
+            debug_data[i, :] = [posx, posy, deg]
+        return chainer.datasets.TupleDataset(labels, images), debug_data
+        
     def make_gentle_onehot_vec(self, hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
         deviation = 15
