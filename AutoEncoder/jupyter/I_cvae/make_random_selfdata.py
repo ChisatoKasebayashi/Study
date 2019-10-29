@@ -204,7 +204,32 @@ class MakeRandomSelfdata:
             #*********probAngleMap[input]***********#
             labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
             debug_data[i, :] = [posx, posy, deg]
-        return chainer.datasets.TupleDataset(labels, images), debug_data
+            return chainer.datasets.TupleDataset(labels, images), debug_data
+        
+    def testtest(self, n):
+        #Xvec = np.zeros((n, self.onehot_w), dtype=np.float32)
+        #Yvec = np.zeros((n, self.onehot_h), dtype=np.float32)
+        pos_vec = np.zeros((n, self.onehot_w + self.onehot_h), dtype=np.float32)
+        labels = np.zeros((n, self.onehot_w+self.onehot_h), dtype=np.float32)
+        images = np.zeros((n, 28*28), dtype=np.float32)
+        for i in range(n):
+            posx = np.random.randint(113)
+            posy = np.random.randint(29)
+            xvec, yvec = self.test_make_2d_represantation_of_position(posx, posy)
+            pos_vec = np.concatenate([xvec, yvec])
+            labels[i,:] = pos_vec
+            
+            im, rad = self.getRotateImageAndRad(posx, posy, 0)
+            images[i, :] = self.addBlur(im) 
+        return chainer.datasets.TupleDataset(labels, images)
+    
+    def test_make_2d_represantation_of_position(self, posx, posy):
+        xvec = np.zeros(self.onehot_w, dtype=np.float32)
+        yvec = np.zeros(self.onehot_h, dtype=np.float32)
+        print(posx, posy, 'posx, posy')
+        xvec[posx] = 1
+        yvec[posy] = 1
+        return xvec, yvec
         
     def make_gentle_onehot_vec(self, hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
