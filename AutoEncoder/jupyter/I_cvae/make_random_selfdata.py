@@ -206,7 +206,7 @@ class MakeRandomSelfdata:
             debug_data[i, :] = [posx, posy, deg]
             return chainer.datasets.TupleDataset(labels, images), debug_data
         
-    def testtest(self, n):
+    def get_ramdom_dataset_with_Positional_representation_with_two_vectors(self, n):
         #Xvec = np.zeros((n, self.onehot_w), dtype=np.float32)
         #Yvec = np.zeros((n, self.onehot_h), dtype=np.float32)
         pos_vec = np.zeros((n, self.onehot_w + self.onehot_h), dtype=np.float32)
@@ -215,7 +215,7 @@ class MakeRandomSelfdata:
         for i in range(n):
             posx = np.random.randint(113)
             posy = np.random.randint(29)
-            xvec, yvec = self.test_make_2d_represantation_of_position(posx, posy)
+            xvec, yvec = self.make_represantation_of_position_with_two_vector(posx, posy)
             pos_vec = np.concatenate([xvec, yvec])
             labels[i,:] = pos_vec
             
@@ -223,7 +223,7 @@ class MakeRandomSelfdata:
             images[i, :] = self.addBlur(im) 
         return chainer.datasets.TupleDataset(labels, images)
     
-    def test_make_2d_represantation_of_position(self, posx, posy):
+    def make_represantation_of_position_with_two_vector(self, posx, posy):
         xvec = np.zeros(self.onehot_w, dtype=np.float32)
         yvec = np.zeros(self.onehot_h, dtype=np.float32)
         #print(posx, posy, 'posx, posy')
