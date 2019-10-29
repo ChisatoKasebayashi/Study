@@ -226,7 +226,7 @@ class MakeRandomSelfdata:
     def test_make_2d_represantation_of_position(self, posx, posy):
         xvec = np.zeros(self.onehot_w, dtype=np.float32)
         yvec = np.zeros(self.onehot_h, dtype=np.float32)
-        print(posx, posy, 'posx, posy')
+        #print(posx, posy, 'posx, posy')
         xvec[posx] = 1
         yvec[posy] = 1
         return xvec, yvec
