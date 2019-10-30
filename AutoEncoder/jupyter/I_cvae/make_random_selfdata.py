@@ -216,11 +216,14 @@ class MakeRandomSelfdata:
             posx = np.random.randint(113)
             posy = np.random.randint(29)
             xvec, yvec = self.make_represantation_of_position_with_two_vector(posx, posy)
+            #xvec = self.make_gentle_onehot_vec(xvec)
+            #yvec = self.make_gentle_onehot_vec(yvec)
             pos_vec = np.concatenate([xvec, yvec])
             labels[i,:] = pos_vec
             
             im, rad = self.getRotateImageAndRad(posx, posy, 0)
-            images[i, :] = self.addBlur(im) 
+            #images[i, :] = self.addBlur(im) 
+            images[i, :] = im 
         return chainer.datasets.TupleDataset(labels, images)
     
     def make_represantation_of_position_with_two_vector(self, posx, posy):
@@ -233,7 +236,7 @@ class MakeRandomSelfdata:
         
     def make_gentle_onehot_vec(self, hotvec): # one dimentional gauss
         g_hotvec = hotvec.copy()
-        deviation = 15
+        deviation = 10
         random_nun = 200
         hotvec_l = hotvec.tolist()
         average = hotvec_l.index(1)
