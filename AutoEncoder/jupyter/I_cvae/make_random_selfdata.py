@@ -23,7 +23,7 @@ class MakeRandomSelfdata:
         h,w = self.img.shape[:2]
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
-        self.rotation_angle = 40 #degree
+        self.rotation_angle = 180 #degree
     def random_crop_in_area(self, left, upper, right, lower, label):
         image_list = np.empty(28*28,dtype=np.float32)
         randx = np.random.randint(left, right)
