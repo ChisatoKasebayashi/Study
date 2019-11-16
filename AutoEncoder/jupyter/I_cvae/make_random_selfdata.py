@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from chainer.datasets import tuple_dataset
 from PIL import Image, ImageDraw
 import cv2
+import pandas as pd
 
 center_point_list = np.empty((1, 2))
 for row in range(2):
@@ -23,7 +24,13 @@ class MakeRandomSelfdata:
         h,w = self.img.shape[:2]
         self.onehot_w = int((w-28)/self.onehot_ratio)+1
         self.onehot_h = int((h-28)/self.onehot_ratio)+1
+        
         self.rotation_angle = 180 #degree
+        self.vrep_image_ratio = 150
+        self.field_w = 9000
+        self.field_h = 6000
+        self.vrep_onehot_w = int(self.field_w/self.vrep_image_ratio)+1
+        self.vrep_onehot_h =int(self.field_h/self.vrep_image_ratio)+1
     def random_crop_in_area(self, left, upper, right, lower, label):
         image_list = np.empty(28*28,dtype=np.float32)
         randx = np.random.randint(left, right)
@@ -322,6 +329,55 @@ class MakeRandomSelfdata:
             debug_data[i, :] = [posx, posy, deg]
         return chainer.datasets.TupleDataset(labels, images), debug_data
     
+    def get_random_dataset_for_rcvae_with_2d_GentleOnehotPosMap_and_2d_GentleOnehotSinCos_vrepImage(self, n, file, data_dir):
+        labels = np.zeros((n, self.vrep_onehot_w*self.vrep_onehot_h + 40*80), dtype=np.float32) #posmap + angleMap　が入る
+        images = np.zeros((n, 40*30), dtype=np.float32)###################### 画像の大きさ変わってるから！！！！
+        debug_data = np.zeros((n, 3), dtype=np.float32)
+        x, y, th, image_name = self.read_csv(n, file)
+        ########x, y , の変換を書く#############
+        #print(x, y)
+        posx, posy = self.convertVrepPos2PosMapValue(x, y, self.vrep_image_ratio)
+        for i in range(n):
+            # 画像と位置と角度のマップ
+            #########image[condition]###########
+            #print(type(data_dir), 'data_dir type')
+            #print(str(image_name[i]), 'image_name[i]')
+            #print(data_dir+str(image_name[i]), 'data_dir')
+            im = np.array(Image.open('./'+data_dir+str(image_name[i])))
+            carr = im.flatten()
+            images[i, :] = np.array(carr, dtype=np.float32)/255
+            
+            #*********probPosMap[input]***********#
+            #print(posx[i], posy[i], 'posx, posy')
+            hotvec = self.getLabelForVrepImage(posx[i],posy[i])############################ 位置のmapの大きさ変わってるから！！！！
+            hotvec_l = hotvec.tolist()
+            average = hotvec_l.index(1)
+            g_hotvec =  self.make_gentle_onehot_vec_2d_custom(np.reshape(hotvec,(self.vrep_onehot_h,self.vrep_onehot_w)), self.vrep_onehot_w, self.vrep_onehot_h)
+            
+            #*********probAngleMap[input]***********#
+            angle_ghot = self.make_angle_map(np.rad2deg(th[i]))
+            
+            labels[i, :] = np.concatenate([g_hotvec, angle_ghot])
+            debug_data[i, :] = [posx[i], posy[i], np.rad2deg(th[i])]
+            
+        return chainer.datasets.TupleDataset(labels, images), debug_data
+    
+    def convertVrepPos2PosMapValue(self, x, y, ratio):
+        f_w = self.field_w
+        f_h = self.field_h
+        x = (x + f_w/2)/ratio
+        y = (y + f_h/2)/ratio
+        #print(x,y, 'in func')
+        return x.astype(np.int64), y.astype(np.int64)
+        
+    def read_csv(self, n, file):#############
+        df = pd.read_csv(file, header=None)
+        x = np.array(df.loc[0:n,0], np.float32)
+        y = np.array(df.loc[0:n,1], np.float32)
+        th = np.array(df.loc[0:n,2], np.float32)
+        image_name = df.loc[0:n,3]
+        return x,y,th, image_name
+    
     def addBlur(self, src_v):
         filter_l = [1, 3, 5, 1]
         n = np.random.randint(len(filter_l))
@@ -420,6 +476,12 @@ class MakeRandomSelfdata:
         res = cv2.warpAffine(self.img, rot_mat, size)
         carr = res.flatten()
         return np.array(carr, dtype=np.float32)/255
+    
+    def getLabelForVrepImage(self,posx,posy):
+        l = np.zeros((self.vrep_onehot_w, self.vrep_onehot_h), dtype=np.float32)
+        l[posx][posy] = 1
+        label = np.ravel(l)
+        return label
     
     def getLabel(self,posx,posy):
         l = np.zeros((self.onehot_h, self.onehot_w), dtype=np.float32)
