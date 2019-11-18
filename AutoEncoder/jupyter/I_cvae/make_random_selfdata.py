@@ -344,12 +344,13 @@ class MakeRandomSelfdata:
             #print(str(image_name[i]), 'image_name[i]')
             #print(data_dir+str(image_name[i]), 'data_dir')
             im = np.array(Image.open('./'+data_dir+str(image_name[i])))
+            im = self.addBlur_forVrep(im)
             carr = im.flatten()
             images[i, :] = np.array(carr, dtype=np.float32)/255
             
             #*********probPosMap[input]***********#
             #print(posx[i], posy[i], 'posx, posy')
-            hotvec = self.getLabelForVrepImage(posx[i],posy[i])############################ 位置のmapの大きさ変わってるから！！！！
+            hotvec = self.getLabelForVrepImage(posy[i],posx[i])############################ 位置のmapの大きさ変わってるから！！！！
             hotvec_l = hotvec.tolist()
             average = hotvec_l.index(1)
             g_hotvec =  self.make_gentle_onehot_vec_2d_custom(np.reshape(hotvec,(self.vrep_onehot_h,self.vrep_onehot_w)), self.vrep_onehot_w, self.vrep_onehot_h)
@@ -366,7 +367,7 @@ class MakeRandomSelfdata:
         f_w = self.field_w
         f_h = self.field_h
         x = (x + f_w/2)/ratio
-        y = (y + f_h/2)/ratio
+        y = int(self.field_h/self.vrep_image_ratio) - (y + f_h/2)/ratio
         #print(x,y, 'in func')
         return x.astype(np.int64), y.astype(np.int64)
         
@@ -378,6 +379,12 @@ class MakeRandomSelfdata:
         image_name = df.loc[0:n,3]
         return x,y,th, image_name
     
+    def addBlur_forVrep(self, src_img):
+        filter_l = [1, 3, 5, 1]
+        n = np.random.randint(len(filter_l))
+        res = cv2.GaussianBlur(src_img,(filter_l[n],filter_l[n]),0)
+        return res
+        
     def addBlur(self, src_v):
         filter_l = [1, 3, 5, 1]
         n = np.random.randint(len(filter_l))
@@ -478,7 +485,7 @@ class MakeRandomSelfdata:
         return np.array(carr, dtype=np.float32)/255
     
     def getLabelForVrepImage(self,posx,posy):
-        l = np.zeros((self.vrep_onehot_w, self.vrep_onehot_h), dtype=np.float32)
+        l = np.zeros((self.vrep_onehot_h, self.vrep_onehot_w), dtype=np.float32)
         l[posx][posy] = 1
         label = np.ravel(l)
         return label
