@@ -220,7 +220,7 @@ def addGomashio(data, label_vec_size):
 
 # In[6]:
 
-
+'''
 def main():
     global NLABELDIM, NZDIM, HIDDEN
     parser = argparse.ArgumentParser(description='Chainer example: VAE')
@@ -342,7 +342,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-
+ 
 # In[ ]:
 
 
@@ -406,6 +406,6 @@ plot_images2((hukan, np.reshape(images,(10,30,40)), np.reshape(pos_map,(10,datas
 
 # In[ ]:
 
-
+'''
 
 
